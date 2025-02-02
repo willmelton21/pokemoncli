@@ -17,5 +17,16 @@ type cacheEntry struct {
 type Cache struct {
     m map[string]cacheEntry
     mu sync.Mutex
+    lifetime time.Duration 
+}
+
+func NewCache(time time.Duration) *Cache {
+	m := make(map[string]cacheEntry
+
+	cache := &Cache{m: m, lifetime: time}
+
+	go cache.reapLoop()
+
+	return cache 
 
 }
