@@ -6,6 +6,7 @@ import (
 	"log"
 	"encoding/json"
 	"internal/pokecache"
+	"time"
 	)
 
 //api interaction code goes here
@@ -19,7 +20,19 @@ type LocationAreasResp struct {
 	}
 }
 
-func GetLocationAreas(nextURL *string) (*LocationAreasResp,error) {
+type Client struct {
+	cache *pokecache.Cache
+
+}
+
+func NewClient() *Client {
+	return &Client{
+		cache: pokecache.NewCache(5 * time.Second), //interval for cache cleanup
+	
+	}
+}
+
+func (c *Client) GetLocationAreas(nextURL *string) (*LocationAreasResp,error) {
 
 	locationResp := LocationAreasResp{}
 	resp, err := http.Get(*nextURL)

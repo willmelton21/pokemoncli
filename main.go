@@ -21,6 +21,7 @@ import (
  type config struct {
 	 Next   	string
 	 Previous	string
+	 client *pokeapi.Client
  }
 
 var commands map[string]cliCommand
@@ -70,7 +71,7 @@ func displayMap(cfg *config) error {
 	if cfg.Next != "" {
 		str = cfg.Next
 	}
-	res,err := pokeapi.GetLocationAreas(&str)
+	res,err := cfg.client.GetLocationAreas(&str)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +94,7 @@ func displayMapB(cfg *config) error {
 		return nil
 	} else {
 
-		res,err := pokeapi.GetLocationAreas(&cfg.Previous)
+		res,err := cfg.client.GetLocationAreas(&cfg.Previous)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -114,6 +115,10 @@ func displayMapB(cfg *config) error {
 }
 
 func main() {
+    
+
+     client := pokeapi.NewClient()
+
      commands = map[string]cliCommand{
         "exit": {
             name:   "exit",
@@ -137,7 +142,9 @@ func main() {
 	},
     }
 
-    cfg := config{Next: "",Previous: ""}
+    cfg := config{Next: "",
+    		  Previous: "",
+	  	  client: client,}
     scanner := bufio.NewScanner(os.Stdin)
     for {
         if fileInfo, _ := os.Stdin.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
