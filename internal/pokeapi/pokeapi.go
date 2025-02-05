@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"log"
 	"encoding/json"
+	"internal/pokecache"
 	)
 
 //api interaction code goes here
