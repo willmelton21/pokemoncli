@@ -33,7 +33,12 @@ func NewClient() *Client {
 }
 
 func (c *Client) GetLocationAreas(nextURL *string) (*LocationAreasResp,error) {
+	
+	val, ok := c.cache[nextURL]
 
+	if ok {
+		return val,nil
+	}
 	locationResp := LocationAreasResp{}
 	resp, err := http.Get(*nextURL)
 	if err != nil {
