@@ -34,12 +34,17 @@ func NewClient() *Client {
 
 func (c *Client) GetLocationAreas(nextURL *string) (*LocationAreasResp,error) {
 	
-	val, ok := c.cache[nextURL]
+	locationResp := LocationAreasResp{}
+	val, ok := c.cache.Get(*nextURL) 
 
 	if ok {
-		return val,nil
+		err := json.Unmarshal(val,&locationResp)
+	if err != nil {
+		return nil,err
+	
 	}
-	locationResp := LocationAreasResp{}
+	return &locationResp,nil
+	}
 	resp, err := http.Get(*nextURL)
 	if err != nil {
 		return nil,err
@@ -62,5 +67,6 @@ func (c *Client) GetLocationAreas(nextURL *string) (*LocationAreasResp,error) {
 		return nil,err
 	
 	}
+	c.cache.Add(*nextURL,body)
 	return &locationResp,nil
 }
