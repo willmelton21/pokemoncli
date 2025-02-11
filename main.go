@@ -21,6 +21,7 @@ import (
  type config struct {
 	 Next   	string
 	 Previous	string
+     Name       string
 	 client *pokeapi.Client
  }
 
@@ -114,6 +115,21 @@ func displayMapB(cfg *config) error {
 
 }
 
+func explore(cfg *config) error {
+
+     url := "https://pokeapi.co/api/v2/location-area/"
+     str := url + cfg.Name 
+     
+    res,err := cfg.client.ExploreLocation(&str)
+    if err != nil {
+        log.Fatal(err)
+    }
+    for i := range res.PokemonEncounters {
+        fmt.Println(res.PokemonEncounters[i].Pokemon.Name)
+    }
+    return nil
+}
+
 func main() {
     
 
@@ -135,15 +151,21 @@ func main() {
             description: "Displays 20 location areas in Pokemon world",
             callback: displayMap,
         },
-	"mapb":{
-		name: "mapb",
-		description: "Display the previous 20 location areas in a Pokemon world",
-		callback: displayMapB,
-	},
+    	"mapb":{
+    		name: "mapb",
+    		description: "Display the previous 20 location areas in a Pokemon world",
+    		callback: displayMapB,
+    	},
+        "explore":{
+            name: "explore",
+            description: "Display a list of pokemon encounters at a given location area",
+            callback: explore,
+        },
     }
 
     cfg := config{Next: "",
     		  Previous: "",
+              Name: "",
 	  	  client: client,}
     scanner := bufio.NewScanner(os.Stdin)
     for {
@@ -158,13 +180,24 @@ func main() {
             continue;
         }
        if val, ok := commands[fields[0]]; ok {
-            err := val.callback(&cfg)
+         
+          if fields[0]  == "explore" { //we are expecting an argument for this function 
+            if len(fields) == 2 {
+                cfg.Name = fields[1]
+            } else {
+              fmt.Println("command is expecting an argument")
+              continue
+            }
+          }
+
+           err := val.callback(&cfg)
             if err != nil {
                 fmt.Println(err)
             }
         } else {
-            fmt.Println("Unkown command")
+            fmt.Println("Unknown command")
         }
+    
  }
 
  }

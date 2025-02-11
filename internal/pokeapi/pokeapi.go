@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"internal/pokecache"
 	"time"
+    "fmt"
 	)
 
 //api interaction code goes here
@@ -20,6 +21,16 @@ type LocationAreasResp struct {
 	}
 }
 
+type PokemonAtLocation struct {
+    PokemonEncounters []struct {
+        Pokemon struct {
+            Name string `json:"name"`
+            URL  string `json:"url"` // Include if you care about URLs; otherwise omit
+        } `json:"pokemon"`
+    } `json:"pokemon_encounters"`
+}
+
+
 type Client struct {
 	cache *pokecache.Cache
 
@@ -31,7 +42,48 @@ func NewClient() *Client {
 	
 	}
 }
+func (c *Client) ExploreLocation(url *string) (*PokemonAtLocation,error) {
+	
+	PokemonAtLocation := PokemonAtLocation{}
+	val, ok := c.cache.Get(*url) 
 
+	if ok {
+		err := json.Unmarshal(val,&PokemonAtLocation)
+	if err != nil {
+		return nil,err
+	
+	}
+	return &PokemonAtLocation,nil
+	}
+	resp, err := http.Get(*url)
+	if err != nil {
+		return nil,err
+	}
+	body, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+    if resp.StatusCode == 404 {
+
+		fmt.Printf("Response failed with status code: %d and \nbody: %s\n", resp.StatusCode, body)
+        return nil, err
+    }
+	if resp.StatusCode > 299{
+
+		log.Fatalf("Response failed with status code: %d and \nbody: %s\n", resp.StatusCode, body)
+		return nil, err	
+	
+	}
+	if err != nil {
+		return nil,err	
+	}
+	err = json.Unmarshal(body,&PokemonAtLocation)
+	if err != nil {
+        fmt.Println("couldn't unmarshal")
+		return nil,err
+	
+	}
+	c.cache.Add(*url,body)
+	return &PokemonAtLocation,nil
+}
 func (c *Client) GetLocationAreas(nextURL *string) (*LocationAreasResp,error) {
 	
 	locationResp := LocationAreasResp{}
@@ -52,6 +104,7 @@ func (c *Client) GetLocationAreas(nextURL *string) (*LocationAreasResp,error) {
 //	fmt.Println("fuffilled get request",resp)
 	body, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
+    
 	if resp.StatusCode > 299{
 
 		log.Fatalf("Response failed with status code: %d and \nbody: %s\n", resp.StatusCode, body)
