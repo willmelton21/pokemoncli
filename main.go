@@ -8,6 +8,7 @@ import (
      "os"
      "bufio"
      "log"
+     "math/rand"
      "internal/pokeapi"
 
  )
@@ -18,11 +19,15 @@ import (
         callback func(cfg *config) error
     }
 
+
+
  type config struct {
 	 Next   	string
 	 Previous	string
-     Name       string
-	 client *pokeapi.Client
+     	 Name           string
+	 Pokemon	string
+	 Pokedex        map[string]*pokeapi.Pokemon
+	 client         *pokeapi.Client
  }
 
 var commands map[string]cliCommand
@@ -130,6 +135,21 @@ func explore(cfg *config) error {
     return nil
 }
 
+func catch(cfg *config) error {
+
+	url := "https://pokeapi.co/api/v2/pokemon/"
+	str := url + cfg.Pokemon
+
+	res, err := cfg.client.GetPokemonInfo(&str)
+	if err != nil {
+		log.Fatal(err)
+	
+	}
+	cfg.Pokedex[cfg.Pokemon] = res
+
+	return nil
+}	
+
 func main() {
     
 
@@ -161,6 +181,12 @@ func main() {
             description: "Display a list of pokemon encounters at a given location area",
             callback: explore,
         },
+	"catch":{
+            name: "catch",
+            description: "Catch a given pokemon",
+            callback: catch,
+        },
+
     }
 
     cfg := config{Next: "",

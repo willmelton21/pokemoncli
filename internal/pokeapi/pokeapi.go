@@ -25,11 +25,25 @@ type PokemonAtLocation struct {
     PokemonEncounters []struct {
         Pokemon struct {
             Name string `json:"name"`
-            URL  string `json:"url"` // Include if you care about URLs; otherwise omit
+            URL  string `json:"url"` 
         } `json:"pokemon"`
     } `json:"pokemon_encounters"`
 }
 
+type Pokemon struct {
+	Height    int `json:"height"`
+	Name      string `json:"name"`
+	Stats []struct {
+		BaseStat int `json:"base_stat"`
+		Effort   int `json:"effort"`
+		Stat     struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"stat"`
+	} `json:"stats"`
+	Weight int `json:"weight"`
+	BaseExperience int `json:"base_experience"`
+}
 
 type Client struct {
 	cache *pokecache.Cache
@@ -42,6 +56,51 @@ func NewClient() *Client {
 	
 	}
 }
+func (c *Client) GetPokemonInfo(url *string) (*Pokemon,error) {
+
+	Pokemon := Pokemon{}
+	val, ok := c.cache.Get(*url) 
+
+	if ok {
+		err := json.Unmarshal(val,&Pokemon)
+	if err != nil {
+		return nil,err
+	
+	}
+	return &Pokemon,nil
+	}
+	resp, err := http.Get(*url)
+	if err != nil {
+		return nil,err
+	}
+	body, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+    if resp.StatusCode == 404 {
+
+		fmt.Printf("Response failed with status code: %d and \nbody: %s\n", resp.StatusCode, body)
+        return nil, err
+    }
+	if resp.StatusCode > 299{
+
+		log.Fatalf("Response failed with status code: %d and \nbody: %s\n", resp.StatusCode, body)
+		return nil, err	
+	
+	}
+	if err != nil {
+		return nil,err	
+	}
+	err = json.Unmarshal(body,&Pokemon)
+	if err != nil {
+        fmt.Println("couldn't unmarshal")
+		return nil,err
+	
+	}
+	c.cache.Add(*url,body)
+	return &Pokemon,nil
+
+
+}
+
 func (c *Client) ExploreLocation(url *string) (*PokemonAtLocation,error) {
 	
 	PokemonAtLocation := PokemonAtLocation{}
