@@ -145,6 +145,11 @@ func catch(cfg *config) error {
 		log.Fatal(err)
 	
 	}
+	fmt.Println("res is ",res)
+	exp := res.BaseExperience
+	fmt.Println("exp is ", exp)
+	rand := rand.Intn(exp)
+	fmt.Println("rand is ",rand)
 	cfg.Pokedex[cfg.Pokemon] = res
 
 	return nil
