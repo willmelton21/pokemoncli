@@ -75,7 +75,6 @@ func (c *Client) GetPokemonInfo(url *string) (*Pokemon,error) {
 	}
 	body, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
-	fmt.Println("resp.body is ",resp.Body)
     if resp.StatusCode == 404 {
 
 		fmt.Printf("Response failed with status code: %d and \nbody: %s\n", resp.StatusCode, body)
@@ -91,8 +90,6 @@ func (c *Client) GetPokemonInfo(url *string) (*Pokemon,error) {
 		return nil,err	
 	}
 	err = json.Unmarshal(body,&Pokemon)
-	ptr := &Pokemon
-	fmt.Println("json struct is ",*ptr)
 	if err != nil {
         fmt.Println("couldn't unmarshal")
 		return nil,err

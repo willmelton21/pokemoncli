@@ -8,6 +8,7 @@ import (
      "os"
      "bufio"
      "log"
+     "math"
      "math/rand"
      "internal/pokeapi"
 
@@ -32,6 +33,18 @@ import (
 
 var commands map[string]cliCommand
  
+func CalculateSuccessChance(exp float64, k float64) float64 {
+	return 100 * math.Exp(-k*exp)
+}
+
+func tryToCatch(baseExp int) bool {
+
+	chance := CalculateSuccessChance(float64(baseExp), 0.007)
+	roll := rand.Float64() * 100
+
+	return roll < chance
+}
+
 func cleanInput(text string) []string {
 
         var retSlice []string
@@ -139,7 +152,6 @@ func catch(cfg *config) error {
 
 	url := "https://pokeapi.co/api/v2/pokemon/"
 	str := url + cfg.Pokemon
-
 	res, err := cfg.client.GetPokemonInfo(&str)
 	if err != nil {
 		log.Fatal(err)
@@ -147,11 +159,14 @@ func catch(cfg *config) error {
 	}
 	fmt.Println("res is ",res)
 	exp := res.BaseExperience
-	fmt.Println("exp is ", exp)
-	rand := rand.Intn(exp)
-	fmt.Println("rand is ",rand)
-	cfg.Pokedex[cfg.Pokemon] = res
 
+	if tryToCatch(exp) {
+		fmt.Println(cfg.Pokemon, "was caught!")
+		cfg.Pokedex[cfg.Pokemon] = res	
+	} else {
+		fmt.Println(cfg.Pokemon, "escaped!")
+	}
+	
 	return nil
 }	
 
@@ -220,6 +235,15 @@ func main() {
               continue
             }
           }
+	 if fields[0]  == "catch" { //we are expecting an argument for this function 
+            if len(fields) == 2 {
+                cfg.Pokemon = fields[1]
+            } else {
+              fmt.Println("command is expecting an argument")
+              continue
+            }
+          }
+
 
            err := val.callback(&cfg)
             if err != nil {
