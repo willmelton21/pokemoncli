@@ -43,6 +43,13 @@ type Pokemon struct {
 	} `json:"stats"`
 	Weight int `json:"weight"`
 	BaseExperience int `json:"base_experience"`
+	Types []struct {
+		Slot int `json:"slot"`
+		Type struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"type"`
+	} `json:"types"`
 }
 
 type Client struct {

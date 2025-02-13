@@ -157,9 +157,8 @@ func catch(cfg *config) error {
 		log.Fatal(err)
 	
 	}
-	fmt.Println("res is ",res)
 	exp := res.BaseExperience
-
+	fmt.Printf("Throwing a Pokeball at %s...\n",cfg.Pokemon)
 	if tryToCatch(exp) {
 		fmt.Println(cfg.Pokemon, "was caught!")
 		cfg.Pokedex[cfg.Pokemon] = res	
@@ -169,6 +168,30 @@ func catch(cfg *config) error {
 	
 	return nil
 }	
+
+func inspect(cfg *config) error {
+
+	val, ok := cfg.Pokedex[cfg.Pokemon]
+
+	if ok {
+		fmt.Printf("Name: %s\n",cfg.Pokemon)
+		fmt.Printf("Height: %d\n",val.Height)
+		fmt.Printf("Weight: %d\n",val.Weight)
+		fmt.Printf("Stats: \n")
+		for _, stats := range val.Stats {
+			fmt.Printf("   -%s: %d\n",stats.Stat.Name,stats.BaseStat)	
+		}
+		fmt.Printf("Types:\n")
+		for _, value := range val.Types {
+			fmt.Printf("   - %s\n",value.Type.Name)
+		}
+	} else {
+		fmt.Println("you have not caught that pokemon")
+	}
+	return nil
+}
+
+
 
 func main() {
     
@@ -206,13 +229,20 @@ func main() {
             description: "Catch a given pokemon",
             callback: catch,
         },
+	"inspect":{
+            name: "inspect",
+            description: "Inspect caught pokemon in pokedex",
+            callback: inspect,
+        },
+
 
     }
 
     cfg := config{Next: "",
     		  Previous: "",
               Name: "",
-	  	  client: client,}
+	  	  client: client,
+	  	Pokedex: make(map[string]*pokeapi.Pokemon),}
     scanner := bufio.NewScanner(os.Stdin)
     for {
         if fileInfo, _ := os.Stdin.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
@@ -235,7 +265,7 @@ func main() {
               continue
             }
           }
-	 if fields[0]  == "catch" { //we are expecting an argument for this function 
+	  if fields[0]  == "catch" || fields[0] == "inspect" { //we are expecting an argument for this function 
             if len(fields) == 2 {
                 cfg.Pokemon = fields[1]
             } else {
@@ -243,7 +273,7 @@ func main() {
               continue
             }
           }
-
+	
 
            err := val.callback(&cfg)
             if err != nil {
