@@ -191,6 +191,16 @@ func inspect(cfg *config) error {
 	return nil
 }
 
+func pokedex(cfg *config) error {
+
+
+
+	fmt.Println("Your Pokedex:")
+	for key,_ := range cfg.Pokedex {
+		fmt.Printf("   -%s\n",key)
+	}
+	return nil
+}
 
 
 func main() {
@@ -234,6 +244,12 @@ func main() {
             description: "Inspect caught pokemon in pokedex",
             callback: inspect,
         },
+	"pokedex":{
+            name: "pokedex",
+            description: "Inspect all caught pokemon registered in your pokedex",
+            callback: pokedex,
+        },
+
 
 
     }
